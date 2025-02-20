@@ -51,4 +51,4 @@ jobs:
           title: "Auto-convert SVGs to Vector Drawables"
           body: "This PR contains automatically converted vector drawables from SVG files."
           labels: "automated, svg-conversion"
-          assignees: "your-github-username"
+          assignees: "gouveia-chip"
