@@ -1,4 +1,4 @@
-name: Convert SVGs to XML and Create PR
+name: Convert SVGs to Android XML and Create PR
 
 on:
   push:
@@ -14,18 +14,18 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Install Dependencies
+      - name: Install Node.js and svg2android
         run: |
           sudo apt update
-          sudo apt install -y python3-pip
-          pip install svg2vectordrawable
+          sudo apt install -y nodejs npm
+          npm install -g svg2android
 
       - name: Convert SVG to Android XML
         run: |
           mkdir -p assets/xml  # Ensure output directory exists
           for file in assets/svg/*.svg; do
             filename=$(basename "$file" .svg)
-            svg2vector "$file" "assets/xml/$filename.xml"
+            svg2android -i "$file" -o "assets/xml/$filename.xml"
           done
 
       - name: Create a new branch
