@@ -1,0 +1,53 @@
+name: Convert SVGs to XML and Create PR
+
+on:
+  push:
+    paths:
+      - "assets/svg/*.svg"  # Trigger when an SVG file is added/updated
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  convert-svg:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y inkscape
+
+      - name: Convert SVG to XML
+        run: |
+          mkdir -p assets/xml  # Ensure output directory exists
+          for file in assets/svg/*.svg; do
+            filename=$(basename "$file" .svg)
+            inkscape "$file" --export-filename="assets/xml/$filename.xml"
+          done
+
+      - name: Create a new branch
+        run: |
+          BRANCH_NAME="auto-convert-svg-$(date +%s)"
+          git checkout -b "$BRANCH_NAME"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: Commit & Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions@github.com"
+          git add assets/xml/*.xml
+          git commit -m "Auto-generated vector drawables from SVGs"
+          git push origin "$BRANCH_NAME"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ env.BRANCH_NAME }}
+          base: main
+          title: "Auto-convert SVGs to Vector Drawables"
+          body: "This PR contains automatically converted vector drawables from SVG files."
+          labels: "automated, svg-conversion"
+          assignees: "gouveia-chip"
